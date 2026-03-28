@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "update_url": "https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/TrickyStoreHelper.sh",
-  "update_log": " ",
+  "update_log": "1.0.0版本发布",
   "need_update": "true",
-  "sha256sum": "e5f79f1015f9eed0817642443df4c08242ce7e60ba08febc025eaf96f9ddc6dd"
+  "sha256sum": "7f5235479c9c1362c2436465bf8d78131a7c5b55b8db4c06bb28338f95f82a03"
 }
