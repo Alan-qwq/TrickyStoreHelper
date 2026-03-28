@@ -8,7 +8,7 @@ TMP_KEYBOX="$TMP_DIR/keybox_tmp.xml"
 YURIKEY_URL="https://raw.githubusercontent.com/Yurii0307/yurikey/main/key"
 TRICKYADDON_URL="https://raw.githubusercontent.com/KOWX712/Tricky-Addon-Update-Target-List/keybox/.extra"
 INTEGRITYBOX_URL="https://raw.githubusercontent.com/MeowDump/MeowDump/refs/heads/main/NullVoid/OptimusPrime"
-UPDATE_JSON_URL="https://raw.githubusercontent.com/Alan-qwq/trickystore-helper/main/update.json"
+UPDATE_JSON_URL="https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/TrickyStoreHelper.sh"
 SECURITY_BULLETIN_URL="https://source.android.com/docs/security/bulletin/pixel"
 
 CURRENT_VERSION="1.1.0"
