@@ -231,9 +231,11 @@ download_file() {
 
   case "$download_file__url" in
     https://raw.githubusercontent.com/*)
-      download_file__original_url="$download_file__url"
-      download_file__url="${GITHUB_PROXY}${download_file__original_url}"
-      log_info "已应用GitHub代理"
+      if [ -n "$GITHUB_PROXY" ]; then
+        download_file__original_url="$download_file__url"
+        download_file__url="${GITHUB_PROXY}${download_file__original_url}"
+        log_info "已应用GitHub代理"
+      fi
       ;;
   esac
 
@@ -316,7 +318,7 @@ check_update() {
   check_update__remote_sha256=$(run grep -o '"sha256sum": *"[^"]*"' "$check_update__tmp" | run sed 's/"sha256sum": *"//;s/"//g')
 
   if [ -z "$check_update__remote_ver" ] || [ -z "$check_update__update_url" ] || [ -z "$check_update__remote_sha256" ]; then
-    log_error "更新配置解析失败，缺少版本号、下载地址或哈希校验字段"
+    log_error "更新配置解析失败"
     unset check_update__tmp check_update__remote_ver check_update__update_url check_update__update_log check_update__need_update check_update__remote_sha256 check_update__is_need_update check_update__confirm check_update__new_script check_update__file_hash
     return 1
   fi
@@ -381,10 +383,10 @@ check_update() {
         return 1
       fi
 
-      log_info "✅ 哈希校验通过，文件安全完整"
+      log_info "✅ 哈希校验通过"
       log_info "正在替换脚本文件..."
       if ! run cp -f "$check_update__new_script" "$SCRIPT_PATH"; then
-        log_error "脚本文件替换失败，请检查目录权限"
+        log_error "脚本文件替换失败"
         run rm -f "$check_update__new_script"
         unset check_update__tmp check_update__remote_ver check_update__update_url check_update__update_log check_update__need_update check_update__remote_sha256 check_update__is_need_update check_update__confirm check_update__new_script check_update__file_hash
         return 1
@@ -562,13 +564,13 @@ keybox_manage_menu() {
 proxy_config_menu() {
   while true; do
     clear_screen
-    printf "${CYAN}===== GitHub代理设置 =====${NC}\n"
+    printf "${CYAN}GitHub代理设置${NC}\n"
     if [ -n "$GITHUB_PROXY" ]; then
       printf "${GREEN}当前生效代理:${NC} %s\n" "$GITHUB_PROXY"
     else
       printf "${YELLOW}当前状态:${NC} 未启用代理\n"
     fi
-    printf "说明：代理均从互联网上收集\n仅本次脚本运行期间有效\n退出后自动失效\n\n"
+    printf "说明：以下github代理均从互联网上收集\n仅本次脚本运行期间有效\n再次运行需重新设置\n"
 
     printf "${GREEN}[1]${NC} 代理1 - https://ghfile.geekertao.top/\n"
     printf "${GREEN}[2]${NC} 代理2 - https://github.dpik.top/\n"
