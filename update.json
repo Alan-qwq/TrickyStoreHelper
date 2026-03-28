@@ -1,7 +1,7 @@
 {
   "version": "1.1.1",
   "update_url": "https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/TrickyStoreHelper.sh",
-  "update_log": "1. 重写脚本2.支持设置最新安全补丁3.支持一键配置target.txt包名 \n 4.支持检查更新",
+  "update_log": " ",
   "need_update": "true",
   "sha256sum": "0aafc5c80c29b462a48e1de86b274bbc77a53fee2b87b99c054e9048fee2e915"
 }
