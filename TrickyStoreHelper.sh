@@ -26,8 +26,8 @@ TOYBOX_COMMANDS=""
 BUSYBOX_COMMANDS=""
 
 init_command_cache() {
-  _init_toybox_out=""
-  _init_busybox_out=""
+  local _init_toybox_out=""
+  local _init_busybox_out=""
   if command -v toybox >/dev/null 2>&1; then
     _init_toybox_out=$(toybox --list 2>/dev/null | tr '\n' ' ')
     TOYBOX_COMMANDS=" $_init_toybox_out "
@@ -39,8 +39,8 @@ init_command_cache() {
   unset _init_toybox_out _init_busybox_out
 }
 
-run() (
-  _cmd="$1"
+run() {
+  local _cmd="$1"
   shift
   if [ -n "$TOYBOX_COMMANDS" ]; then
     case "$TOYBOX_COMMANDS" in
@@ -64,69 +64,71 @@ run() (
   fi
   printf "${RED}[ERROR]${NC} 命令 '%s' 不可用（toybox/busybox/系统均未找到）\n" "$_cmd" >&2
   return 127
-)
+}
 
-log_info() (
+log_info() {
   printf "${GREEN}[INFO]${NC} %s\n" "$1"
-)
+}
 
-log_warn() (
+log_warn() {
   printf "${YELLOW}[WARN]${NC} %s\n" "$1" >&2
-)
+}
 
-log_error() (
+log_error() {
   printf "${RED}[ERROR]${NC} %s\n" "$1" >&2
-)
+}
 
-clear_screen() (
+clear_screen() {
   printf "\033c"
-)
+}
 
-version_ge() (
-  _ver1="$1"
-  _ver2="$2"
-  _i=1
-  while [ $_i -le 5 ]; do
-    _n1=$(echo "$_ver1" | run cut -d. -f$_i 2>/dev/null)
-    _n2=$(echo "$_ver2" | run cut -d. -f$_i 2>/dev/null)
+version_ge() {
+  local _ver1="$1"
+  local _ver2="$2"
+  local _i=1
+  while [ "$_i" -le 5 ]; do
+    local _n1=$(printf "%s" "$_ver1" | run cut -d. -f"$_i" 2>/dev/null)
+    local _n2=$(printf "%s" "$_ver2" | run cut -d. -f"$_i" 2>/dev/null)
     _n1=${_n1:-0}
     _n2=${_n2:-0}
-    _n1=$((10#$_n1))
-    _n2=$((10#$_n2))
-    if [ $_n1 -gt $_n2 ]; then return 0; fi
-    if [ $_n1 -lt $_n2 ]; then return 1; fi
+    _n1=$(printf "%s" "$_n1" | run sed 's/^0*//')
+    _n1=${_n1:-0}
+    _n2=$(printf "%s" "$_n2" | run sed 's/^0*//')
+    _n2=${_n2:-0}
+    if [ "$_n1" -gt "$_n2" ]; then return 0; fi
+    if [ "$_n1" -lt "$_n2" ]; then return 1; fi
     _i=$((_i + 1))
   done
   return 0
-)
+}
 
-show_decode_progress() (
-  _current="$1"
-  _total="$2"
-  _bar_len=20
-  _filled=$((_current * _bar_len / _total))
-  _empty=$((_bar_len - _filled))
+show_decode_progress() {
+  local _current="$1"
+  local _total="$2"
+  local _bar_len=20
+  local _filled=$((_current * _bar_len / _total))
+  local _empty=$((_bar_len - _filled))
   
-  _bar=""
-  _i=0
-  while [ $_i -lt $_filled ]; do
+  local _bar=""
+  local _j=0
+  while [ "$_j" -lt "$_filled" ]; do
     _bar="$_bar#"
-    _i=$((_i + 1))
+    _j=$((_j + 1))
   done
   
-  _empty_bar=""
-  _i=0
-  while [ $_i -lt $_empty ]; do
+  local _empty_bar=""
+  _j=0
+  while [ "$_j" -lt "$_empty" ]; do
     _empty_bar="$_empty_bar-"
-    _i=$((_i + 1))
+    _j=$((_j + 1))
   done
   
   printf "${BLUE}[DECODE]${NC} [%s%s] %d/%d 层 \r" "$_bar" "$_empty_bar" "$_current" "$_total"
   if [ "$_current" -eq "$_total" ]; then printf "\n"; fi
-)
+}
 
 check_root() {
-  _check_root_uid=$(run id -u)
+  local _check_root_uid=$(run id -u)
   if [ "$_check_root_uid" -ne 0 ]; then
     log_error "需要 Root 权限!"
     exit 1
@@ -135,10 +137,10 @@ check_root() {
 }
 
 check_tools() {
-  _check_missing=""
-  _check_has_curl=0
-  _check_has_wget=0
-  _required_tools="id xxd base64 readlink grep sed awk sort wc head tr cat rm mkdir cp mv chmod touch ls pm dirname basename pwd cut date getprop sha256sum"
+  local _check_missing=""
+  local _check_has_curl=0
+  local _check_has_wget=0
+  local _required_tools="id xxd base64 readlink grep sed awk sort wc head tr cat rm mkdir cp mv chmod touch ls pm dirname basename pwd cut date getprop sha256sum"
 
   case "$TOYBOX_COMMANDS" in *" wget "*) _check_has_wget=1 ;; esac
   case "$BUSYBOX_COMMANDS" in *" wget "*) _check_has_wget=1 ;; esac
@@ -152,7 +154,7 @@ check_tools() {
   fi
 
   for _tool in $_required_tools; do
-    _has_tool=0
+    local _has_tool=0
     case "$TOYBOX_COMMANDS" in *" $_tool "*) _has_tool=1 ;; esac
     case "$BUSYBOX_COMMANDS" in *" $_tool "*) _has_tool=1 ;; esac
     if [ $_has_tool -eq 1 ] || command -v "$_tool" >/dev/null 2>&1; then
@@ -176,10 +178,10 @@ init_env() {
 }
 
 get_script_path() {
-  _has_readlink=0
-  _script_dir=""
-  _script_name=""
-  _abs_dir=""
+  local _has_readlink=0
+  local _script_dir=""
+  local _script_name=""
+  local _abs_dir=""
   SCRIPT_PATH=""
 
   case "$TOYBOX_COMMANDS" in *" readlink "*) _has_readlink=1 ;; esac
@@ -214,11 +216,11 @@ get_script_path() {
   return 0
 }
 
-download_file() (
-  _url="$1"
-  _dest="$2"
-  _success=1
-  _has_wget=0
+download_file() {
+  local _url="$1"
+  local _dest="$2"
+  local _success=1
+  local _has_wget=0
 
   run rm -f "$_dest"
 
@@ -247,19 +249,19 @@ download_file() (
     run rm -f "$_dest"
     return 1
   fi
-)
+}
 
 check_update() {
-  _update_tmp="$TMP_DIR/update.json"
-  _remote_version=""
-  _update_url=""
-  _update_log=""
-  _need_update=""
-  _remote_sha256=""
-  _is_need_update=0
-  _confirm=""
-  _new_script="$TMP_DIR/new_tricky_helper.sh"
-  _file_hash=""
+  local _update_tmp="$TMP_DIR/update.json"
+  local _remote_version=""
+  local _update_url=""
+  local _update_log=""
+  local _need_update=""
+  local _remote_sha256=""
+  local _is_need_update=0
+  local _confirm=""
+  local _new_script="$TMP_DIR/new_tricky_helper.sh"
+  local _file_hash=""
 
   clear_screen
   run sleep 1
@@ -281,7 +283,7 @@ check_update() {
   _remote_version=$(run grep -o '"version": *"[^"]*"' "$_update_tmp" | run sed 's/"version": *"//;s/"//g')
   _update_url=$(run grep -o '"update_url": *"[^"]*"' "$_update_tmp" | run sed 's/"update_url": *"//;s/"//g')
   _update_log=$(run grep -o '"update_log": *"[^"]*"' "$_update_tmp" | run sed 's/"update_log": *"//;s/"//g')
-  _need_update=$(run grep -o '"need_update": *[^,}]*' "$_update_tmp" | run sed 's/"need_update": *//;s/[ ,}]//g')
+  _need_update=$(run grep -o '"need_update": *"[^"]*"' "$_update_tmp" | run sed 's/"need_update": *"//;s/"//g')
   _remote_sha256=$(run grep -o '"sha256sum": *"[^"]*"' "$_update_tmp" | run sed 's/"sha256sum": *"//;s/"//g')
 
   if [ -z "$_remote_version" ] || [ -z "$_update_url" ] || [ -z "$_remote_sha256" ]; then
@@ -293,13 +295,15 @@ check_update() {
   printf "\n${CYAN}当前版本:${NC} v%s\n" "$CURRENT_VERSION"
   printf "${CYAN}最新版本:${NC} v%s\n\n" "$_remote_version"
 
-  if [ "$_need_update" = "true" ]; then
-    if ! version_ge "$CURRENT_VERSION" "$_remote_version"; then
+  if ! version_ge "$CURRENT_VERSION" "$_remote_version"; then
+    if [ "$_need_update" = "true" ]; then
       _is_need_update=1
+    else
+      log_warn "发现新版本，但远程配置关闭了强制更新，跳过更新"
     fi
   fi
 
-  if [ $_is_need_update -eq 0 ]; then
+  if [ "$_is_need_update" -eq 0 ]; then
     log_info "✅ 当前已是最新版本，无需更新"
     unset _update_tmp _remote_version _update_url _update_log _need_update _remote_sha256 _is_need_update _confirm _new_script _file_hash
     return 0
@@ -378,13 +382,14 @@ check_update() {
   esac
 }
 
-fetch_yurikey() (
+fetch_yurikey() {
   log_info "[1/2] 正在下载 Yurikey 源..."
   if ! download_file "$YURIKEY_URL" "$TMP_RAW"; then
     return 1
   fi
   log_info "[2/2] 正在解码..."
-  if ! run base64 -d "$TMP_RAW" > "$TMP_KEYBOX" 2>/dev/null; then
+  # 预处理去除换行/空白，提升解码兼容性
+  if ! run tr -d '\n\r ' < "$TMP_RAW" | run base64 -d > "$TMP_KEYBOX" 2>/dev/null; then
     log_error "解码失败"
     return 1
   fi
@@ -393,15 +398,16 @@ fetch_yurikey() (
     return 1
   fi
   return 0
-)
+}
 
-fetch_tricky_addon() (
+fetch_tricky_addon() {
   log_info "[1/2] 正在下载 Tricky Addon 源..."
   if ! download_file "$TRICKYADDON_URL" "$TMP_RAW"; then
     return 1
   fi
   log_info "[2/2] 正在解码..."
-  if ! run cat "$TMP_RAW" | run xxd -r -p | run base64 -d > "$TMP_KEYBOX" 2>/dev/null; then
+  # 预处理去除换行/空白，提升解码兼容性
+  if ! run tr -d '\n\r ' < "$TMP_RAW" | run xxd -r -p | run base64 -d > "$TMP_KEYBOX" 2>/dev/null; then
     log_error "解码失败"
     return 1
   fi
@@ -410,18 +416,20 @@ fetch_tricky_addon() (
     return 1
   fi
   return 0
-)
+}
 
-fetch_integritybox() (
-  _process_file="$TMP_DIR/process.tmp"
-  _next_file="$TMP_DIR/process.next"
-  _i=1
+fetch_integritybox() {
+  local _process_file="$TMP_DIR/process.tmp"
+  local _next_file="$TMP_DIR/process.next"
+  local _i=1
+  local _clean_file="$TMP_DIR/clean.tmp"
 
   log_info "[1/3] 正在下载 IntegrityBox 源..."
   if ! download_file "$INTEGRITYBOX_URL" "$TMP_RAW"; then
     return 1
   fi
-  run cp "$TMP_RAW" "$_process_file"
+  # 预处理去除所有换行/空白，避免base64解码失败
+  run tr -d '\n\r ' < "$TMP_RAW" > "$_process_file"
 
   log_info "[2/3] 正在解码 (10层Base64)..."
   while [ $_i -le 10 ]; do
@@ -430,7 +438,9 @@ fetch_integritybox() (
       return 1
     fi
     show_decode_progress $_i 10
-    if ! run base64 -d "$_process_file" > "$_next_file" 2>/dev/null; then
+    # 每层解码前都预处理，确保无非法字符
+    run tr -d '\n\r ' < "$_process_file" > "$_clean_file"
+    if ! run base64 -d "$_clean_file" > "$_next_file" 2>/dev/null; then
       log_error "第 $_i 层 Base64 解码失败"
       return 1
     fi
@@ -448,10 +458,10 @@ fetch_integritybox() (
     return 1
   fi
   return 0
-)
+}
 
-validate_keybox() (
-  _file="$1"
+validate_keybox() {
+  local _file="$1"
   if [ ! -s "$_file" ]; then
     log_error "生成的 Keybox 文件无效 (空文件)"
     return 1
@@ -462,12 +472,12 @@ validate_keybox() (
     log_error "Keybox 内容校验失败"
     return 1
   fi
-  _size=$(run wc -c < "$_file" 2>/dev/null | run tr -d ' ')
+  local _size=$(run wc -c < "$_file" 2>/dev/null | run tr -d ' ')
   log_info "校验通过，文件大小: $_size 字节"
   return 0
-)
+}
 
-install_keybox() (
+install_keybox() {
   if run mv -f "$TMP_KEYBOX" "$TARGET_KEYBOX"; then
     run chmod 644 "$TARGET_KEYBOX"
     log_info "✅ Keybox 更新成功！"
@@ -476,9 +486,9 @@ install_keybox() (
     log_error "写入文件失败"
     return 1
   fi
-)
+}
 
-show_current() (
+show_current() {
   if [ -f "$TARGET_KEYBOX" ]; then
     printf "${CYAN}当前文件:${NC} %s\n" "$TARGET_KEYBOX"
     run ls -lh "$TARGET_KEYBOX"
@@ -488,7 +498,7 @@ show_current() (
   else
     printf "${YELLOW}未找到 Keybox 文件${NC}\n"
   fi
-)
+}
 
 keybox_manage_menu() {
   while true; do
@@ -517,13 +527,13 @@ keybox_manage_menu() {
 }
 
 update_target_txt() {
-  _target_file="$TS_DIR/target.txt"
-  _suffix=""
-  _mode_choice=""
-  _pkg_third=""
-  _pkg_system=""
-  _packages=""
-  _include_system_app="com.google.android.gms com.google.android.gsf com.android.vending com.oplus.deepthinker com.heytap.speechassist com.coloros.sceneservice"
+  local _target_file="$TS_DIR/target.txt"
+  local _suffix=""
+  local _mode_choice=""
+  local _pkg_third=""
+  local _pkg_system=""
+  local _packages=""
+  local _include_system_app="com.google.android.gms com.google.android.gsf com.android.vending com.oplus.deepthinker com.heytap.speechassist com.coloros.sceneservice"
 
   clear_screen
 
@@ -570,7 +580,7 @@ update_target_txt() {
     return 1
   fi
 
-  _app_count=$(echo "$_packages" | run wc -l)
+  local _app_count=$(echo "$_packages" | run wc -l)
   log_info "共获取到 $_app_count 个应用"
   log_info "正在写入 $_target_file ..."
 
@@ -583,7 +593,7 @@ update_target_txt() {
   done > "$_target_file"
 
   if [ $? -eq 0 ] && [ -s "$_target_file" ]; then
-    _final_count=$(run wc -l < "$_target_file")
+    local _final_count=$(run wc -l < "$_target_file")
     log_info "✅ target.txt 更新成功！共写入 $_final_count 条包名"
     printf "${CYAN}文件路径:${NC} %s\n" "$_target_file"
     printf "${CYAN}内容预览:${NC}\n"
@@ -599,7 +609,7 @@ update_target_txt() {
 }
 
 get_latest_security_patch() {
-  _security_patch=""
+  local _security_patch=""
   _security_patch=$(run wget -T 15 --no-check-certificate -qO- "$SECURITY_BULLETIN_URL" 2>/dev/null | \
                    run sed -n 's/.*<td>\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)<\/td>.*/\1/p' | \
                    run head -n 1)
@@ -621,15 +631,15 @@ get_latest_security_patch() {
 }
 
 set_trickystore_security() {
-  _TARGET_PATCH="$1"
+  local _TARGET_PATCH="$1"
   if [ -z "$_TARGET_PATCH" ]; then
     _TARGET_PATCH=$(run getprop ro.build.version.security_patch)
     log_warn "未指定补丁日期，使用系统当前补丁：$_TARGET_PATCH"
   fi
 
-  _FORMATTED=$(echo "$_TARGET_PATCH" | run sed 's/-//g')
-  _TODAY=$(run date +%Y%m%d)
-  _PATCH_1Y_LATER=$((_FORMATTED + 10000))
+  local _FORMATTED=$(echo "$_TARGET_PATCH" | run sed 's/-//g')
+  local _TODAY=$(run date +%Y%m%d)
+  local _PATCH_1Y_LATER=$((_FORMATTED + 10000))
 
   if [ -n "$_FORMATTED" ] && [ "$_TODAY" -lt "$_PATCH_1Y_LATER" ]; then
     log_info "安全补丁有效：$_TARGET_PATCH，开始写入TrickyStore"
@@ -638,8 +648,8 @@ set_trickystore_security() {
     return 1
   fi
 
-  _TS_PROP="/data/adb/modules/tricky_store/module.prop"
-  _TS_VERSION=0
+  local _TS_PROP="/data/adb/modules/tricky_store/module.prop"
+  local _TS_VERSION=0
   if [ -f "$_TS_PROP" ]; then
     _TS_VERSION=$(run grep "versionCode=" "$_TS_PROP" | run cut -d'=' -f2)
     case "$_TS_VERSION" in
@@ -648,7 +658,7 @@ set_trickystore_security() {
   fi
 
   if [ -f "$_TS_PROP" ] && run grep -q "James" "$_TS_PROP" && ! run grep -q "beakthoven" "$_TS_PROP"; then
-    _SEC_FILE="$TS_DIR/devconfig.toml"
+    local _SEC_FILE="$TS_DIR/devconfig.toml"
     if [ -f "$_SEC_FILE" ]; then
       if run grep -q "^securityPatch" "$_SEC_FILE"; then
         run sed "s/^securityPatch .*/securityPatch = \"$_TARGET_PATCH\"/" "$_SEC_FILE" > "$_SEC_FILE.tmp" && run mv -f "$_SEC_FILE.tmp" "$_SEC_FILE"
@@ -665,7 +675,7 @@ set_trickystore_security() {
       return 1
     fi
   elif [ "$_TS_VERSION" -ge 158 ] || run grep -q "beakthoven" "$_TS_PROP" 2>/dev/null; then
-    _SEC_FILE="$TS_DIR/security_patch.txt"
+    local _SEC_FILE="$TS_DIR/security_patch.txt"
     printf "system=prop\nboot=%s\nvendor=%s\n" "$_TARGET_PATCH" "$_TARGET_PATCH" > "$_SEC_FILE"
     run chmod 644 "$_SEC_FILE"
     log_info "已写入新版 TrickyStore: $_SEC_FILE"
@@ -680,7 +690,7 @@ set_trickystore_security() {
 config_security_patch() {
   clear_screen
   log_info "获取安卓官方最新安全补丁"
-  _LATEST_PATCH=$(get_latest_security_patch)
+  local _LATEST_PATCH=$(get_latest_security_patch)
   if [ -z "$_LATEST_PATCH" ]; then
     log_error "无法获取有效安全补丁日期"
     printf "\n%s" "按回车继续..."
@@ -706,7 +716,7 @@ cleanup() {
 }
 
 main() {
-  _main_choice=""
+  local _main_choice=""
 
   init_command_cache
   check_root
