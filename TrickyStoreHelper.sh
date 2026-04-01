@@ -9,9 +9,9 @@ YURIKEY_URL="https://raw.githubusercontent.com/Yurii0307/yurikey/main/key"
 TRICKYADDON_URL="https://raw.githubusercontent.com/KOWX712/Tricky-Addon-Update-Target-List/keybox/.extra"
 INTEGRITYBOX_URL="https://raw.githubusercontent.com/MeowDump/MeowDump/refs/heads/main/NullVoid/OptimusPrime"
 UPDATE_JSON_URL="https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/update.json"
-SECURITY_BULLETIN_URL="https://source.android.com/docs/security/bulletin/pixel"
+SECURITY_BULLETIN_URL="https://source.android.google.cn/docs/security/bulletin/pixel"
 
-CURRENT_VERSION="1.0.0"
+CURRENT_VERSION="1.0.1"
 SCRIPT_PATH=""
 GITHUB_PROXY=""
 
@@ -142,41 +142,6 @@ check_root() {
     exit 1
   fi
   unset check_root__uid
-}
-
-check_tools() {
-  check_tools__missing=""
-  check_tools__has_curl=0
-  check_tools__has_wget=0
-  check_tools__required="id xxd base64 readlink grep sed awk sort wc head tr cat rm mkdir cp mv chmod touch ls pm dirname basename pwd cut date getprop sha256sum"
-
-  case "$TOYBOX_COMMANDS" in *" wget "*) check_tools__has_wget=1 ;; esac
-  case "$BUSYBOX_COMMANDS" in *" wget "*) check_tools__has_wget=1 ;; esac
-  case "$TOYBOX_COMMANDS" in *" curl "*) check_tools__has_curl=1 ;; esac
-  case "$BUSYBOX_COMMANDS" in *" curl "*) check_tools__has_curl=1 ;; esac
-
-  if [ "$check_tools__has_wget" -eq 0 ] && [ "$check_tools__has_curl" -eq 0 ]; then
-    if ! command -v wget >/dev/null 2>&1 && ! command -v curl >/dev/null 2>&1; then
-      check_tools__missing="$check_tools__missing wget/curl"
-    fi
-  fi
-
-  for check_tools__tool in $check_tools__required; do
-    check_tools__exist=0
-    case "$TOYBOX_COMMANDS" in *" $check_tools__tool "*) check_tools__exist=1 ;; esac
-    case "$BUSYBOX_COMMANDS" in *" $check_tools__tool "*) check_tools__exist=1 ;; esac
-    if [ "$check_tools__exist" -eq 1 ] || command -v "$check_tools__tool" >/dev/null 2>&1; then
-      continue
-    fi
-    check_tools__missing="$check_tools__missing $check_tools__tool"
-  done
-
-  if [ -n "$check_tools__missing" ]; then
-    log_error "缺少必要工具: $check_tools__missing"
-    exit 1
-  fi
-
-  unset check_tools__missing check_tools__has_curl check_tools__has_wget check_tools__required check_tools__tool check_tools__exist
 }
 
 init_env() {
@@ -570,7 +535,7 @@ proxy_config_menu() {
     else
       printf "${YELLOW}当前状态:${NC} 未启用代理\n"
     fi
-    printf "说明：以下github代理均从互联网上收集\n仅本次脚本运行期间有效\n再次运行需重新设置\n"
+    printf "说明：\n以下github代理均为互联网上收集\n代理仅本次脚本运行期间有效\n"
 
     printf "${GREEN}[1]${NC} 代理1 - https://ghfile.geekertao.top/\n"
     printf "${GREEN}[2]${NC} 代理2 - https://github.dpik.top/\n"
@@ -663,7 +628,7 @@ update_target_txt() {
   while true; do
     clear_screen
     printf "${CYAN}选择密钥注入模式${NC}\n"
-    printf "${GREEN}[1]${NC} 正常模式\n"
+    printf "${GREEN}[1]${NC} 自动\n"
     printf "${YELLOW}[2]${NC} 生成证书链（!）\n"
     printf "${YELLOW}[3]${NC} 修改证书链（?）\n"
     printf "${RED}[0]${NC} 退出\n"
@@ -863,7 +828,6 @@ cleanup() {
 main() {
   init_command_cache
   check_root
-  check_tools
   init_env
 
   trap cleanup EXIT INT TERM
