@@ -1,7 +1,7 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "update_url": "https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/TrickyStoreHelper.sh",
-  "update_log": "优化部分代码和文本，安卓补丁获取改为从source.android.google.cn获取",
+  "update_log": "去除了配置安全补丁功能对其他版本TrickyStore的支持，只支持新版TrickyStore及其分支，解决部分设备没有resetprop导致配置安全补丁异常的问题",
   "need_update": "true",
-  "sha256sum": "f7334c5e142ed484d8c8efdc5176d5135df736df43dfde2825472a8068b109c3"
+  "sha256sum": "82ed4f7c57def8cd4ad8da837d19271ba1d4112cf841b32004bf788e43bc4b25"
 }
