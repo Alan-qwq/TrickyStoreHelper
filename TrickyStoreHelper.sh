@@ -11,7 +11,7 @@ INTEGRITYBOX_URL="https://raw.githubusercontent.com/MeowDump/MeowDump/refs/heads
 UPDATE_JSON_URL="https://raw.githubusercontent.com/Alan-qwq/TrickyStoreHelper/main/update.json"
 SECURITY_BULLETIN_URL="https://source.android.google.cn/docs/security/bulletin/pixel"
 
-CURRENT_VERSION="1.0.1"
+CURRENT_VERSION="1.0.2"
 SCRIPT_PATH=""
 GITHUB_PROXY=""
 
@@ -750,48 +750,17 @@ set_trickystore_security() {
     log_info "安全补丁有效：$set_security__patch，开始写入TrickyStore"
   else
     log_error "安全补丁已过期或无效，取消设置"
-    unset set_security__patch set_security__formatted set_security__today set_security__expire set_security__prop_file set_security__version set_security__config_file
+    unset set_security__patch set_security__formatted set_security__today set_security__expire set_security__config_file
     return 1
   fi
 
-  set_security__prop_file="/data/adb/modules/tricky_store/module.prop"
-  set_security__version=0
-  if [ -f "$set_security__prop_file" ]; then
-    set_security__version=$(run grep "versionCode=" "$set_security__prop_file" | run cut -d'=' -f2)
-    case "$set_security__version" in
-      *[!0-9]*) set_security__version=0 ;;
-    esac
-  fi
+  set_security__config_file="$TS_DIR/security_patch.txt"
+  run mkdir -p "$TS_DIR"
+  printf "system=prop\nboot=%s\nvendor=%s\n" "$set_security__patch" "$set_security__patch" > "$set_security__config_file"
+  run chmod 644 "$set_security__config_file"
+  log_info "已写入 TrickyStore 配置: $set_security__config_file"
 
-  if [ -f "$set_security__prop_file" ] && run grep -q "James" "$set_security__prop_file" && ! run grep -q "beakthoven" "$set_security__prop_file"; then
-    set_security__config_file="$TS_DIR/devconfig.toml"
-    if [ -f "$set_security__config_file" ]; then
-      if run grep -q "^securityPatch" "$set_security__config_file"; then
-        run sed "s/^securityPatch .*/securityPatch = \"$set_security__patch\"/" "$set_security__config_file" > "$set_security__config_file.tmp" && run mv -f "$set_security__config_file.tmp" "$set_security__config_file"
-      else
-        if ! run grep -q "^\\[deviceProps\\]" "$set_security__config_file"; then
-          printf "securityPatch = \"%s\"\n" "$set_security__patch" >> "$set_security__config_file"
-        else
-          run sed "s/^\[deviceProps\]/securityPatch = \"$set_security__patch\"\n&/" "$set_security__config_file" > "$set_security__config_file.tmp" && run mv -f "$set_security__config_file.tmp" "$set_security__config_file"
-        fi
-      fi
-      log_info "已写入 James 版 TrickyStore: $set_security__config_file"
-    else
-      log_error "未找到 James 版配置文件 $set_security__config_file"
-      unset set_security__patch set_security__formatted set_security__today set_security__expire set_security__prop_file set_security__version set_security__config_file
-      return 1
-    fi
-  elif [ "$set_security__version" -ge 158 ] || run grep -q "beakthoven" "$set_security__prop_file" 2>/dev/null; then
-    set_security__config_file="$TS_DIR/security_patch.txt"
-    printf "system=prop\nboot=%s\nvendor=%s\n" "$set_security__patch" "$set_security__patch" > "$set_security__config_file"
-    run chmod 644 "$set_security__config_file"
-    log_info "已写入新版 TrickyStore: $set_security__config_file"
-  else
-    run resetprop ro.build.version.security_patch "$set_security__patch"
-    run resetprop ro.vendor.build.security_patch "$set_security__patch"
-    log_info "旧版TrickyStore，已修改系统安全补丁属性"
-  fi
-  unset set_security__patch set_security__formatted set_security__today set_security__expire set_security__prop_file set_security__version set_security__config_file
+  unset set_security__patch set_security__formatted set_security__today set_security__expire set_security__config_file
   return 0
 }
 
